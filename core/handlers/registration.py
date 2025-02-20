@@ -47,7 +47,7 @@ async def get_city(message: types.Message, state: FSMContext):
 async def get_education(call: types.CallbackQuery, state: FSMContext):
     await state.update_data(education=call.data.split('_')[1])
     await state.set_state(RegistrationStates.interests)
-    await call.message.edit_text('Введите ваши области интересов через запятую\n\n'
+    await call.message.edit_text('Введите ваши области интересов через пробел\n\n'
                                  'Например: <code>Python</code>, <code>ML</code>, <code>дизайн</code>')
 
 
@@ -55,7 +55,9 @@ async def get_education(call: types.CallbackQuery, state: FSMContext):
 async def get_interests(message: types.Message, state: FSMContext):
     await state.update_data(interests=message.text)
     state_data = await state.get_data()
-    state_data['vacancy_filters'] = state_data['courses_filters'] = {'city': state_data['city']}
+    state_data['vacancy_filters'] = {'knowledge': state_data['interests'], 'city': state_data['city']}
+    state_data['course_filters'] = {'interests': state_data['interests']}
+    state_data.pop('interests')
     state_data['city'] = state_data['city']['name']
     await database.add_user(message.chat.id, **state_data)
     await state.clear()

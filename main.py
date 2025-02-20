@@ -1,16 +1,24 @@
-# This is a sample Python script.
+import asyncio
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+from aiogram import types, F
+from aiogram.filters import Command
+
+from core import database
+from core.handlers import basic, vacancy, courses
+from core.config import dp, bot
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+async def main():
+    dp.db_pool = await database.get_db_pool()
+    # dp.update.middleware(BasicMiddleware())
+    dp.message.register(basic.start, Command('start'))
+    dp.callback_query.register(vacancy.search_vacancy, F.data == 'search_vacancy')
+    dp.callback_query.register(courses.search_course, F.data == 'search_course')
+
+    await bot.set_my_commands([types.BotCommand(command="start", description="Старт")])
+    await dp.start_polling(bot)
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+print('Start working')
+if __name__ == "__main__":
+    asyncio.run(main())

@@ -1,1 +1,6 @@
-/.env
+.env
+.idea
+.venv
+__pycache__
+venv
+core/test.py

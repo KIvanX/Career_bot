@@ -2,7 +2,8 @@ from aiogram.fsm.state import StatesGroup, State
 
 
 class BasicStates(StatesGroup):
-    assistantChat = State()
+    orderAssistantChat = State()
+    devPathAssistant = State()
 
 
 class RegistrationStates(StatesGroup):

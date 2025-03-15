@@ -50,7 +50,8 @@ async def vacancy_filters(data):
     for key, name in vacancy_filters_names.items():
         keyboard.add(types.InlineKeyboardButton(text=name, callback_data=f'filter_{key}'))
     keyboard.adjust(2, 2, 2)
-    keyboard.row(types.InlineKeyboardButton(text='⬅️ Назад', callback_data='start'))
+    keyboard.row(types.InlineKeyboardButton(text='🔄 Сбросить все', callback_data='reset_vacancy_filters'),
+                 types.InlineKeyboardButton(text='⬅️ Назад', callback_data='start'))
 
     user = await database.get_user(message.chat.id)
     text = f'🔎 <b>Фильтры поиска вакансий</b>\n'
@@ -176,4 +177,10 @@ async def filter_choice_no_matter_save(call: types.CallbackQuery, state: FSMCont
     if choice in user['vacancy_filters']:
         user['vacancy_filters'].pop(choice)
     await database.update_user(call.message.chat.id, {'vacancy_filters': user['vacancy_filters']})
+    await vacancy_filters(call)
+
+
+@dp.callback_query(F.data == 'reset_vacancy_filters')
+async def reset_vacancy_filters(call: types.CallbackQuery):
+    await database.update_user(call.message.chat.id, {'vacancy_filters': {}})
     await vacancy_filters(call)

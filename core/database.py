@@ -12,11 +12,10 @@ async def get_db_pool():
     return db_pool
 
 
-async def add_user(user_id: int, name, age, city, education, vacancy_filters, course_filters):
+async def add_user(user_id: int, name, age, city, vacancy_filters, course_filters):
     async with dp.db_pool.acquire() as connection:
-        await connection.execute('INSERT INTO users(user_id, name, age, city, education, vacancy_filters, '
-                                 'course_filters) '
-                                 'VALUES ($1, $2, $3, $4, $5, $6, $7)', user_id, name, age, city, education,
+        await connection.execute('INSERT INTO users(user_id, name, age, city, vacancy_filters, course_filters) '
+                                 'VALUES ($1, $2, $3, $4, $5, $6)', user_id, name, age, city,
                                  json.dumps(vacancy_filters, ensure_ascii=False),
                                  json.dumps(course_filters, ensure_ascii=False))
 

@@ -57,7 +57,8 @@ async def courses_filter(data):
             name = '🔳 ' + name if user['course_filters'].get(key, False) else '⬜️ ' + name
         keyboard.add(types.InlineKeyboardButton(text=name, callback_data=f'course_filter_{key}'))
     keyboard.adjust(2, 2, 2)
-    keyboard.row(types.InlineKeyboardButton(text='⬅️ Назад', callback_data='start'))
+    keyboard.row(types.InlineKeyboardButton(text='🔄 Сбросить все', callback_data='reset_course_filters'),
+                 types.InlineKeyboardButton(text='⬅️ Назад', callback_data='start'))
 
     text = f'🔎 <b>Фильтры поиска курсов</b>\n'
     for key, value in user['course_filters'].items():
@@ -202,4 +203,10 @@ async def filter_change_language_save(call: types.CallbackQuery):
     user['course_filters']['lang'] = call.data.split('_')[0]
 
     await database.update_user(call.message.chat.id, {'course_filters': user['course_filters']})
+    await courses_filter(call)
+
+
+@dp.callback_query(F.data == 'reset_course_filters')
+async def reset_course_filters(call: types.CallbackQuery):
+    await database.update_user(call.message.chat.id, {'course_filters': {}})
     await courses_filter(call)

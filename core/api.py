@@ -3,7 +3,7 @@ import requests
 
 
 def hh_get_vacancies(filters: dict, page: int = 0):
-    params = {'text': filters['knowledge'], 'currency': 'RUR', 'page': page, 'per_page': 1}
+    params = {'text': filters.get('knowledge', ''), 'currency': 'RUR', 'page': page, 'per_page': 1}
     if 'city' in filters:
         filters['area'] = filters.pop('city')['id']
 
@@ -24,8 +24,8 @@ def hh_get_city(name: str):
 
 
 def stepik_get_courses(filters: dict, page: int = 0):
-    params = {'query': filters['interests'], 'page': page}
-    filters.pop('interests')
+    params = {'query': filters.get('interests', ''), 'page': page}
+    filters.pop('interests') if 'interests' in filters else None
     params.update(filters)
     res = requests.get('https://stepik.org/api/search-results', params=params)
 
@@ -35,3 +35,8 @@ def stepik_get_courses(filters: dict, page: int = 0):
                            headers={"Content-type": "application/json"})
         return res.json()['courses']
     return []
+
+
+# res = requests.get(f'https://kazan.ucheba.ru/for-abiturients/speciality/search?query=программирование',
+#                    headers={'content-type': 'application/json'})
+

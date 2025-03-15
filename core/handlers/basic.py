@@ -6,11 +6,11 @@ from aiogram.fsm.context import FSMContext
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from core import database, api
-from core.config import dp, groq_client
+from core.config import dp, groq_client, LLM_MODEL_NAME
 from core.handlers.registration import registration
 from core.states import BasicStates
 from core.variables import get_order_prompt, choose_vacancy_filters, vacancy_filters_names, course_filters_names, \
-    course_difficulty_names
+    course_difficulty_names, get_dev_path_prompt
 
 
 @dp.callback_query(F.data == 'start')
@@ -24,15 +24,17 @@ async def start(data, state: FSMContext):
 
     keyboard = InlineKeyboardBuilder()
     keyboard.add(types.InlineKeyboardButton(text='🔮 Я хочу...', callback_data='get_order'))
+    keyboard.add(types.InlineKeyboardButton(text='🎯 Траектория развития', callback_data='development_path'))
     keyboard.add(types.InlineKeyboardButton(text='💼 Поиск вакансии', callback_data='search_vacancy'))
     keyboard.add(types.InlineKeyboardButton(text='👨‍🏫 Поиск курса', callback_data='search_course'))
     keyboard.add(types.InlineKeyboardButton(text='⚙️ Фильтры вакансий', callback_data='vacancy_filters'))
     keyboard.add(types.InlineKeyboardButton(text='⚙️ Фильтры курсов', callback_data='course_filters'))
-    keyboard.adjust(1, 2, 2)
+    keyboard.add(types.InlineKeyboardButton(text='🖊 Редактировать профиль', callback_data='update_profile'))
+    keyboard.adjust(2, 2, 2, 1)
 
     text = ('Главное меню\n\n'
             f'<b>{user["name"]}</b>, {user["age"]}\n'
-            f'Город: {user["city"]}\n')
+            f'Город проживания: {user["city"]}\n')
     try:
         await message.edit_text(text, reply_markup=keyboard.as_markup())
     except:
@@ -41,7 +43,14 @@ async def start(data, state: FSMContext):
         await message.answer(text, reply_markup=keyboard.as_markup())
 
 
-@dp.message(F.text[0] != '/', BasicStates.assistantChat)
+@dp.callback_query(F.data == 'update_profile')
+async def update_profile(call: types.CallbackQuery, state: FSMContext):
+    await state.clear()
+    await call.answer()
+    await registration(call.message, state)
+
+
+@dp.message(F.text[0] != '/', BasicStates.orderAssistantChat)
 @dp.callback_query(F.data == 'get_order')
 async def get_order(data, state: FSMContext):
     message: types.Message = data.message if isinstance(data, types.CallbackQuery) else data
@@ -50,12 +59,12 @@ async def get_order(data, state: FSMContext):
     if isinstance(data, types.CallbackQuery):
         state_data['chat'] = [{"role": "system", "content": get_order_prompt}, {"role": "user", "content": 'Привет'}]
         await data.answer()
-        await state.set_state(BasicStates.assistantChat)
+        await state.set_state(BasicStates.orderAssistantChat)
     else:
         state_data['chat'] = state_data.get('chat', []) + [{"role": "user", "content": message.text}]
 
     res = await groq_client.chat.completions.create(
-        model='llama-3.3-70b-versatile',
+        model=LLM_MODEL_NAME,
         messages=state_data['chat'],
     )
     ans = res.choices[0].message.content
@@ -103,6 +112,33 @@ async def get_order(data, state: FSMContext):
             await message.answer(text, reply_markup=keyboard.as_markup())
 
         return 0
+
+    keyboard = InlineKeyboardBuilder()
+    keyboard.add(types.InlineKeyboardButton(text='🏚 В меню', callback_data='start'))
+
+    state_data['chat'] += [{"role": "assistant", "content": ans}]
+    await state.update_data(chat=state_data['chat'])
+    await message.answer(ans, reply_markup=keyboard.as_markup())
+
+
+@dp.message(F.text[0] != '/', BasicStates.devPathAssistant)
+@dp.callback_query(F.data == 'development_path')
+async def development_path(data, state: FSMContext):
+    message: types.Message = data.message if isinstance(data, types.CallbackQuery) else data
+    state_data = await state.get_data()
+
+    if isinstance(data, types.CallbackQuery):
+        state_data['chat'] = [{"role": "system", "content": get_dev_path_prompt}]
+        await data.answer()
+        await state.set_state(BasicStates.devPathAssistant)
+    else:
+        state_data['chat'] = state_data.get('chat', []) + [{"role": "user", "content": message.text}]
+
+    res = await groq_client.chat.completions.create(
+        model=LLM_MODEL_NAME,
+        messages=state_data['chat'],
+    )
+    ans = res.choices[0].message.content
 
     keyboard = InlineKeyboardBuilder()
     keyboard.add(types.InlineKeyboardButton(text='🏚 В меню', callback_data='start'))

@@ -1,10 +1,8 @@
 
-import json
 from typing import Callable, Dict, Any, Awaitable
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject
-from . import database
-from .config import dp
+import database
 
 
 class BasicMiddleware(BaseMiddleware):

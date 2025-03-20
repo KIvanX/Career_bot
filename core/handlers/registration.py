@@ -63,7 +63,7 @@ async def get_interests(message: types.Message, state: FSMContext):
     state_data['course_filters'] = {'interests': state_data['interests']}
     state_data.pop('interests')
     state_data['city'] = state_data['city']['name']
-    if await database.get_user(message.chat.id) is None:
+    if not await database.get_user(message.chat.id):
         await database.add_user(message.chat.id, **state_data)
         text = '✅ Профиль создан'
     else:

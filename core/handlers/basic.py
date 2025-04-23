@@ -43,6 +43,27 @@ async def start(data, state: FSMContext):
         await message.answer(text, reply_markup=keyboard.as_markup())
 
 
+async def delete_account_confirm(message: types.Message):
+    keyboard = InlineKeyboardBuilder()
+    keyboard.row(types.InlineKeyboardButton(text='Да, уверен', callback_data='delete_account'))
+    keyboard.row(types.InlineKeyboardButton(text='Отмена', callback_data='delete_account_cancel'))
+
+    await message.answer('Вы уверены, что хотите удалить свой профиль?\n\n'
+                         '❗️ Траектория развития и фильтры поиска также будут удалены\n\n'
+                         'Профиль можно будет создать заново.', reply_markup=keyboard.as_markup())
+
+
+@dp.callback_query(F.data == 'delete_account')
+async def delete_account(call: types.CallbackQuery):
+    await database.delete_account(call.message.chat.id)
+    await call.message.edit_text('✅ Профиль удален')
+
+
+@dp.callback_query(F.data == 'delete_account_cancel')
+async def delete_account_cancel(call: types.CallbackQuery):
+    await call.message.edit_text('✅ Удаление отменено')
+
+
 @dp.callback_query(F.data == 'update_profile')
 async def update_profile(call: types.CallbackQuery, state: FSMContext):
     await state.clear()
@@ -125,24 +146,28 @@ async def get_order(data, state: FSMContext):
 @dp.callback_query(F.data == 'development_path')
 async def development_path(data, state: FSMContext):
     message: types.Message = data.message if isinstance(data, types.CallbackQuery) else data
-    state_data = await state.get_data()
-
-    if isinstance(data, types.CallbackQuery):
-        state_data['chat'] = [{"role": "system", "content": get_dev_path_prompt}]
-        await data.answer()
-        await state.set_state(BasicStates.devPathAssistant)
-    else:
-        state_data['chat'] = state_data.get('chat', []) + [{"role": "user", "content": message.text}]
-
-    res = await groq_client.chat.completions.create(
-        model=LLM_MODEL_NAME,
-        messages=state_data['chat'],
-    )
-    ans = res.choices[0].message.content
+    chat = await database.get_messages(message.chat.id)
 
     keyboard = InlineKeyboardBuilder()
     keyboard.add(types.InlineKeyboardButton(text='🏚 В меню', callback_data='start'))
 
-    state_data['chat'] += [{"role": "assistant", "content": ans}]
-    await state.update_data(chat=state_data['chat'])
+    if isinstance(data, types.CallbackQuery):
+        await data.answer()
+        await state.set_state(BasicStates.devPathAssistant)
+        if not chat:
+            chat.append({"role": "system", "content": get_dev_path_prompt})
+            await database.add_message(message.chat.id, 'system', get_dev_path_prompt)
+        elif chat[-1]['role'] == 'assistant':
+            return await message.answer(chat[-1]['content'], reply_markup=keyboard.as_markup())
+    else:
+        chat.append({"role": "user", "content": message.text})
+        await database.add_message(message.chat.id, 'user', message.text)
+
+    res = await groq_client.chat.completions.create(
+        model=LLM_MODEL_NAME,
+        messages=chat,
+    )
+    ans = res.choices[0].message.content
+
+    await database.add_message(message.chat.id, 'assistant', ans)
     await message.answer(ans, reply_markup=keyboard.as_markup())

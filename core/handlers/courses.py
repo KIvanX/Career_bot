@@ -26,7 +26,8 @@ async def search_course(call: types.CallbackQuery, state: FSMContext):
 
     keyboard = InlineKeyboardBuilder()
     keyboard.row(types.InlineKeyboardButton(text='ℹ️ Подробнее', url=course['canonical_url']))
-    keyboard.row(types.InlineKeyboardButton(text=f'➡️ Далее', callback_data='search_course'))
+    keyboard.row(types.InlineKeyboardButton(text=f'☑️ Пройдено', callback_data=f'completed_{course["id"]}'),
+                 types.InlineKeyboardButton(text=f'➡️ Далее', callback_data='search_course'))
     keyboard.row(types.InlineKeyboardButton(text='🏚 Назад', callback_data='start'))
 
     text = (f'<b>{course["title"]}</b>\n\n'
@@ -41,6 +42,18 @@ async def search_course(call: types.CallbackQuery, state: FSMContext):
         await call.message.answer_photo(course['cover'], caption=text, reply_markup=keyboard.as_markup())
     else:
         await call.message.answer(text, reply_markup=keyboard.as_markup(), disable_web_page_preview=True)
+
+
+@dp.callback_query(F.data.startswith('completed_'))
+async def filter_salary(call: types.CallbackQuery):
+    course_id = int(call.data.split('_')[-1])
+    course = api.stepik_get_course(course_id)
+
+    await database.add_message(call.message.chat.id, 'system',
+                               f'Пользователь прошел курс "{course["title"]}", сложность курса: {course["difficulty"]}. '
+                               f'Учитывай это при дальнейшем составлении траектории развития.')
+
+    await call.answer('☑️ Сохранено')
 
 
 @dp.callback_query(F.data == 'course_filters')
@@ -152,7 +165,7 @@ async def filter_difficulty(call: types.CallbackQuery, state: FSMContext):
 
 
 @dp.callback_query(F.data.startswith('difficulty_'))
-async def filter_difficulty_save(call: types.CallbackQuery, state: FSMContext):
+async def filter_difficulty_save(call: types.CallbackQuery):
     user = await database.get_user(call.message.chat.id)
     user['course_filters']['difficulty'] = call.data.split('_')[1]
     await database.update_user(call.message.chat.id, {'course_filters': user['course_filters']})

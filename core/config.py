@@ -11,4 +11,4 @@ bot = Bot(os.environ.get('TOKEN'), default=DefaultBotProperties(parse_mode=Parse
 # storage = RedisStorage.from_url('redis://localhost:6379/7')
 dp = Dispatcher()
 groq_client = AsyncGroq(api_key=os.environ.get('GROQ_API_KEY'))
-LLM_MODEL_NAME = 'qwen-2.5-32b'
+LLM_MODEL_NAME = 'llama-3.3-70b-versatile'

@@ -27,6 +27,7 @@ def stepik_get_courses(filters: dict, page: int = 0):
     params = {'query': filters.get('interests', ''), 'page': page}
     filters.pop('interests') if 'interests' in filters else None
     params.update(filters)
+
     res = requests.get('https://stepik.org/api/search-results', params=params)
 
     if 'search-results' in res.json():
@@ -35,6 +36,13 @@ def stepik_get_courses(filters: dict, page: int = 0):
                            headers={"Content-type": "application/json"})
         return res.json()['courses']
     return []
+
+
+def stepik_get_course(course_id: int):
+    res = requests.get('https://stepik.org/api/courses',
+                       params={'ids[]': [course_id]},
+                       headers={"Content-type": "application/json"})
+    return res.json()['courses'][0]
 
 
 # res = requests.get(f'https://kazan.ucheba.ru/for-abiturients/speciality/search?query=программирование',

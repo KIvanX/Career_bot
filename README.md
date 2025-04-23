@@ -28,6 +28,15 @@ create table users
     vacancy_filters json default '{}'::json,
     course_filters  json default '{}'::json
 );
+
+create table messages
+(
+    id              serial primary key,
+    user_id         bigint not null,
+    role            varchar(64),
+    content         text,
+    created_at      timestamp default now()
+);
 ```
 
 5. Запустите бота

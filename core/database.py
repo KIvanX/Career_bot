@@ -36,3 +36,22 @@ async def update_user(user_id: int, data: dict):
         for key in data:
             data[key] = json.dumps(data[key], ensure_ascii=False) if isinstance(data[key], dict) else data[key]
             await connection.execute(f'UPDATE users SET {key} = $1 WHERE user_id = $2', data[key], user_id)
+
+
+async def add_message(user_id: int, role: str, content: str):
+    async with dp.db_pool.acquire() as connection:
+        await connection.execute(f'INSERT INTO messages(user_id, role, content) VALUES ($1, $2, $3)', user_id, role, content)
+
+
+async def get_messages(user_id: int):
+    async with dp.db_pool.acquire() as connection:
+        messages = []
+        for m in await connection.fetch(f'SELECT role, content FROM messages WHERE user_id = $1', user_id):
+            messages.append({'role': m[0], 'content': m[1]})
+        return messages
+
+
+async def delete_account(user_id):
+    async with dp.db_pool.acquire() as connection:
+        await connection.execute('DELETE FROM users WHERE user_id = $1', user_id)
+        await connection.execute('DELETE FROM messages WHERE user_id = $1', user_id)

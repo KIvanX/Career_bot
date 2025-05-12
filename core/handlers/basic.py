@@ -32,9 +32,9 @@ async def start(data, state: FSMContext):
     keyboard.add(types.InlineKeyboardButton(text='🖊 Редактировать профиль', callback_data='update_profile'))
     keyboard.adjust(2, 2, 2, 1)
 
-    text = ('Главное меню\n\n'
+    text = ('<b>Главное меню</b>\n\n'
             f'<b>{user["name"]}</b>, {user["age"]}\n'
-            f'Город проживания: {user["city"]}\n')
+            f'<b>Город проживания:</b> {user["city"]}\n')
     try:
         await message.edit_text(text, reply_markup=keyboard.as_markup())
     except:

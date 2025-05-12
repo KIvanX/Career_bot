@@ -27,12 +27,12 @@ async def search_vacancy(call: types.CallbackQuery, state: FSMContext):
     keyboard.row(types.InlineKeyboardButton(text='🏚 Назад', callback_data='start'))
 
     text = (f'<b>{vacancy["name"]}</b>\n\n'
-            f'Компания: <a href="{vacancy["employer"]["alternate_url"]}">{vacancy["employer"]["name"]}</a>\n'
-            f'Город: {vacancy["area"]["name"]}\n'
-            f'Зарплата: {get_salary(vacancy["salary"])}\n'
-            f'Опыт работы: {vacancy["experience"]["name"]}\n'
-            f'График работы: {vacancy["schedule"]["name"]}\n'
-            f'Занятость: {vacancy["employment"]["name"]}\n')
+            f'<b>Компания:</b> <a href="{vacancy["employer"]["alternate_url"]}">{vacancy["employer"]["name"]}</a>\n'
+            f'<b>Город:</b> {vacancy["area"]["name"]}\n'
+            f'<b>Зарплата:</b> {get_salary(vacancy["salary"])}\n'
+            f'<b>Опыт работы:</b> {vacancy["experience"]["name"]}\n'
+            f'<b>График работы:</b> {vacancy["schedule"]["name"]}\n'
+            f'<b>Занятость:</b> {vacancy["employment"]["name"]}\n')
 
     await call.answer()
     if vacancy['employer']['logo_urls']:
@@ -60,7 +60,8 @@ async def vacancy_filters(data):
             value = value['name']
         elif key in choose_vacancy_filters:
             value = next((e for e in choose_vacancy_filters[key] if e['id'] == value))['name']
-        text += f'\n{vacancy_filters_names[key]}: {value}'
+        text += f'\n<b>{vacancy_filters_names[key]}:</b> {value}'
+
     try:
         await message.edit_text(text, reply_markup=keyboard.as_markup())
     except:
@@ -74,7 +75,7 @@ async def filter_interests(call: types.CallbackQuery, state: FSMContext):
 
     keyboard = InlineKeyboardBuilder()
     keyboard.row(types.InlineKeyboardButton(text='⬅️ Назад', callback_data='vacancy_filters'))
-    await call.message.edit_text('Введите ваши области знаний пробел запятую\n\n'
+    await call.message.edit_text('Введите Ваши области знаний пробел запятую\n\n'
                                  'Например: <code>Python</code>, <code>ML</code>, <code>дизайн</code>',
                                  reply_markup=keyboard.as_markup())
 
@@ -133,7 +134,7 @@ async def filter_city_choose(message: types.Message, state: FSMContext):
     keyboard.adjust(2)
     keyboard.row(types.InlineKeyboardButton(text='⬅️ Назад', callback_data='filter_city'))
 
-    await bot.edit_message_text('Выбери свой город из списка', chat_id=message.chat.id,
+    await bot.edit_message_text('Выберите свой город из списка', chat_id=message.chat.id,
                                 message_id=state_data.get('message_id'), reply_markup=keyboard.as_markup())
 
 

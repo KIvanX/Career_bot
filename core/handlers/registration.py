@@ -10,14 +10,14 @@ from core.states import RegistrationStates
 async def registration(message: types.Message, state: FSMContext):
     await state.clear()
     await state.set_state(RegistrationStates.name)
-    await message.answer('Введите ваше имя')
+    await message.answer('Введите Ваше имя')
 
 
 @dp.message(F.text[0] != '/', RegistrationStates.name)
 async def get_name(message: types.Message, state: FSMContext):
     await state.update_data(name=message.text)
     await state.set_state(RegistrationStates.age)
-    await message.answer('Введите ваш возраст')
+    await message.answer('Введите Ваш возраст')
 
 
 @dp.message(F.text[0] != '/', RegistrationStates.age)
@@ -26,7 +26,7 @@ async def get_age(message: types.Message, state: FSMContext):
         return await message.answer('Введите корректный возраст')
     await state.update_data(age=int(message.text))
     await state.set_state(RegistrationStates.city)
-    await message.answer('Введите ваш город проживания')
+    await message.answer('Введите Ваш город проживания')
 
 
 # @dp.message(F.text[0] != '/', RegistrationStates.city)
@@ -40,7 +40,7 @@ async def get_age(message: types.Message, state: FSMContext):
 #         keyboard.add(types.InlineKeyboardButton(text=tp, callback_data='education_' + tp))
 #     keyboard.adjust(2)
 #     await state.set_state(RegistrationStates.education)
-#     await message.answer('Выберите уровень вашего образования', reply_markup=keyboard.as_markup())
+#     await message.answer('Выберите уровень Вашего образования', reply_markup=keyboard.as_markup())
 
 
 @dp.message(F.text[0] != '/', RegistrationStates.city)
@@ -51,7 +51,7 @@ async def get_education(message: types.Message, state: FSMContext):
     await state.update_data(city=cities[0])
     # await state.update_data(education=call.data.split('_')[1])
     await state.set_state(RegistrationStates.interests)
-    await message.answer('Введите ваши области интересов через пробел\n\n'
+    await message.answer('Введите Ваши области интересов через пробел\n\n'
                          'Например: <code>Python</code>, <code>ML</code>, <code>дизайн</code>')
 
 

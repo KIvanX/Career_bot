@@ -31,11 +31,11 @@ async def search_course(call: types.CallbackQuery, state: FSMContext):
     keyboard.row(types.InlineKeyboardButton(text='🏚 Назад', callback_data='start'))
 
     text = (f'<b>{course["title"]}</b>\n\n'
-            f'Цена: {course.get("price", "") + " ₽" if course["is_paid"] else "Бесплатный"}\n'
-            f'Сложность: {course_difficulty_names[course["difficulty"]]}\n'
-            f'Язык: {"🇷🇺 Русский" if course["language"] == "ru" else "🇬🇧 Английский"}\n'
-            f'Учащихся: {course["learners_count"]} человек\n'
-            f'{"Сертификат: ✅ Есть" if course.get("certificate") else ""}\n')
+            f'<b>Цена:</b> {course.get("price", "") + " ₽" if course["is_paid"] else "Бесплатный"}\n'
+            f'<b>Сложность:</b> {course_difficulty_names[course["difficulty"]]}\n'
+            f'<b>Язык:</b> {"🇷🇺 Русский" if course["language"] == "ru" else "🇬🇧 Английский"}\n'
+            f'<b>Учащихся:</b> {course["learners_count"]} человек\n'
+            f'{"<b>Сертификат:</b> ✅ Есть" if course.get("certificate") else ""}\n')
 
     await call.answer()
     if course['cover']:
@@ -82,7 +82,7 @@ async def courses_filter(data):
             continue
         if key == 'with_certificate':
             continue
-        text += f'\n{course_filters_names[key]}: {value}'
+        text += f'\n<b>{course_filters_names[key]}:</b> {value}'
     try:
         await message.edit_text(text, reply_markup=keyboard.as_markup())
     except:
@@ -96,7 +96,7 @@ async def filter_interests(call: types.CallbackQuery, state: FSMContext):
 
     keyboard = InlineKeyboardBuilder()
     keyboard.row(types.InlineKeyboardButton(text='⬅️ Назад', callback_data='course_filters'))
-    await call.message.edit_text('Введите ваши области знаний через пробел\n\n'
+    await call.message.edit_text('Введите Ваши области знаний через пробел\n\n'
                                  'Например: <code>Python</code>, <code>ML</code>, <code>дизайн</code>',
                                  reply_markup=keyboard.as_markup())
 
@@ -161,7 +161,7 @@ async def filter_difficulty(call: types.CallbackQuery, state: FSMContext):
 
     await state.set_state(FilterStates.difficulty)
     await state.update_data(message_id=call.message.message_id, choice='difficulty')
-    await call.message.edit_text('Выбери сложность курса', reply_markup=keyboard.as_markup())
+    await call.message.edit_text('Выберите сложность курса', reply_markup=keyboard.as_markup())
 
 
 @dp.callback_query(F.data.startswith('difficulty_'))
@@ -207,7 +207,7 @@ async def filter_change_language(call: types.CallbackQuery, state: FSMContext):
     keyboard.add(types.InlineKeyboardButton(text='⬅️ Назад', callback_data='course_filters'))
     keyboard.adjust(2, 2)
 
-    await call.message.edit_text('Выбери язык курса', reply_markup=keyboard.as_markup())
+    await call.message.edit_text('Выберите язык курса', reply_markup=keyboard.as_markup())
 
 
 @dp.callback_query(F.data.in_(['ru_language', 'en_language']))

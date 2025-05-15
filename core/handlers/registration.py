@@ -15,6 +15,9 @@ async def registration(message: types.Message, state: FSMContext):
 
 @dp.message(F.text[0] != '/', RegistrationStates.name)
 async def get_name(message: types.Message, state: FSMContext):
+    if [e for e in message.text.lower() if not(ord('a') <= ord(e) <= ord('z') or ord('а') <= ord(e) <= ord('я') or e in [' ', '-'])]:
+        return await message.answer('Введите корректное имя')
+
     await state.update_data(name=message.text)
     await state.set_state(RegistrationStates.age)
     await message.answer('Введите Ваш возраст')

@@ -13,7 +13,7 @@ from core.variables import get_order_prompt, choose_vacancy_filters, vacancy_fil
     course_difficulty_names, get_dev_path_prompt
 
 
-@dp.callback_query(F.data == 'start')
+@dp.callback_query(F.data.in_(['start', 'save_start']))
 async def start(data, state: FSMContext):
     message: types.Message = data.message if isinstance(data, types.CallbackQuery) else data
     await state.clear()
@@ -36,6 +36,8 @@ async def start(data, state: FSMContext):
             f'<b>{user["name"]}</b>, {user["age"]}\n'
             f'<b>Город проживания:</b> {user["city"]}\n')
     try:
+        if isinstance(data, types.CallbackQuery) and data.data == 'save_start':
+            raise None
         await message.edit_text(text, reply_markup=keyboard.as_markup())
     except:
         if isinstance(data, types.CallbackQuery):
@@ -135,7 +137,7 @@ async def get_order(data, state: FSMContext):
         return 0
 
     keyboard = InlineKeyboardBuilder()
-    keyboard.add(types.InlineKeyboardButton(text='🏚 В меню', callback_data='start'))
+    keyboard.add(types.InlineKeyboardButton(text='🏚 В меню', callback_data='save_start'))
 
     state_data['chat'] += [{"role": "assistant", "content": ans}]
     await state.update_data(chat=state_data['chat'])
@@ -149,7 +151,7 @@ async def development_path(data, state: FSMContext):
     chat = await database.get_messages(message.chat.id)
 
     keyboard = InlineKeyboardBuilder()
-    keyboard.add(types.InlineKeyboardButton(text='🏚 В меню', callback_data='start'))
+    keyboard.add(types.InlineKeyboardButton(text='🏚 В меню', callback_data='save_start'))
 
     if isinstance(data, types.CallbackQuery):
         await data.answer()

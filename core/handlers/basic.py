@@ -6,7 +6,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from core import database, api
-from core.config import dp, groq_client, LLM_MODEL_NAME
+from core.config import dp, client, LLM_MODEL_NAME
 from core.handlers.registration import registration
 from core.states import BasicStates
 from core.variables import get_order_prompt, choose_vacancy_filters, vacancy_filters_names, course_filters_names, \
@@ -86,7 +86,7 @@ async def get_order(data, state: FSMContext):
     else:
         state_data['chat'] = state_data.get('chat', []) + [{"role": "user", "content": message.text}]
 
-    res = await groq_client.chat.completions.create(
+    res = client.chat.completions.create(
         model=LLM_MODEL_NAME,
         messages=state_data['chat'],
     )
@@ -165,7 +165,7 @@ async def development_path(data, state: FSMContext):
         chat.append({"role": "user", "content": message.text})
         await database.add_message(message.chat.id, 'user', message.text)
 
-    res = await groq_client.chat.completions.create(
+    res = client.chat.completions.create(
         model=LLM_MODEL_NAME,
         messages=chat,
     )
